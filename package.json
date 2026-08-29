@@ -1,0 +1,20 @@
+{
+  "name": "com.zerohint.mesh-optimizer",
+  "version": "1.0.0",
+  "displayName": "Mesh Optimizer",
+  "description": "Interactive, prefab-by-prefab mesh optimizer. Walk a folder of prefabs, tune every mesh against a live original/optimized preview, edit LOD transitions, then apply: optimized meshes are written once, shared meshes are reused, and prefabs are re-pointed automatically.\n\nRequires UnityMeshSimplifier (com.whinarn.unitymeshsimplifier) - see the README for the manifest entry.",
+  "unity": "6000.0",
+  "keywords": [
+    "mesh",
+    "optimization",
+    "simplification",
+    "decimation",
+    "lod",
+    "editor",
+    "tool"
+  ],
+  "author": {
+    "name": "ZeroHint"
+  },
+  "hideInEditor": false
+}

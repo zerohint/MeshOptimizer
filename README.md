@@ -1,6 +1,8 @@
-# Mesh Optimizer
+# Unity Mesh Optimizer
 
 Interactive, prefab-by-prefab mesh optimizer for the Unity Editor.
+
+![Unity Mesh Optimizer](Docs/screenshoot.jpg)
 
 Point it at a folder of prefabs and step through them: for each prefab you get every mesh it
 uses with its stats, a live original/optimized preview, the full simplifier option set, and the
@@ -22,11 +24,7 @@ the prefab and moves to the next one.
 
 ## Installation
 
-**From disk** — Window ▸ Package Manager ▸ **+** ▸ *Install package from disk…* and pick this
-folder's `package.json`.
-
-**From a git URL** — Window ▸ Package Manager ▸ **+** ▸ *Install package from git URL…*, or add
-the entry to `Packages/manifest.json` directly.
+Window ▸ Package Manager ▸ **+** ▸ *Install package from git URL…*
 
 ## Usage
 
@@ -45,7 +43,7 @@ window and choose **Optimize Prefab Meshes…**.
 - **Preserve UV Seam Edges** is the usual reason a mesh refuses to shrink: on hard-surface props
   with per-face UVs almost every edge is a seam, so quality stops having any effect. The window
   detects this and offers to unlock it.
-- **Preserve Border Edges** protects planes, fences and cards — unlocking it erodes their silhouette.
+- **Preserve Border Edges** protects planes, fences and cards; unlocking it erodes their silhouette.
 - **Recalculate Tangents** is on by default; **Recalculate Normals** is off, because rebuilding
   normals averages across hard edges and flattens hard-surface shading.
 
@@ -54,9 +52,15 @@ window and choose **Optimize Prefab Meshes…**.
 State that matters to the whole project lives in `ProjectSettings/MeshOptimizer.json`
 (git-friendly plain JSON):
 
-- which source mesh produced which optimized asset, and the settings used — so a mesh shared by
-  several prefabs is generated once, and re-tuning overwrites that asset instead of creating a
-  `_opt_opt` chain;
+- which source mesh produced which optimized asset, and the settings used so a mesh shared by
+  several prefabs is generated once, and re-tuning overwrites that asset
 - per-prefab progress (applied/skipped), keyed by GUID so it survives renames.
 
 Per-user preferences (folders, pane sizes, column widths, queue position) live in `EditorPrefs`.
+
+
+
+## TODO
+
+- Code seperation, scripts so long.
+- Child mesh deletion (like deleting sub parts of a whole car mesh if not needed)

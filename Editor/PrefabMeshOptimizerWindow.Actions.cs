@@ -256,9 +256,13 @@ namespace MeshOptimizer
             if (e?.source == null)
                 return;
 
+            if (TryUseCachedResult(e))
+                return;
+
             e.error = null;
             e.needsRebuild = false;
-            e.job = MeshOptimizeCore.SimplifyJob.Start(e.source, e.settings.Clone());
+            e.jobSettings = e.settings.Clone();
+            e.job = MeshOptimizeCore.SimplifyJob.Start(e.source, e.jobSettings);
         }
 
         /// <summary>Blocking variant used by Generate All, where a progress bar is shown anyway.</summary>
@@ -267,16 +271,23 @@ namespace MeshOptimizer
             if (e?.source == null)
                 return;
 
+            if (TryUseCachedResult(e))
+                return;
+
             StartJob(e);
             var job = e.job;
             e.job = null;
 
-            DestroyIfTemporary(e.result);
-            e.result = job.Complete();
+            var result = job.Complete();
             e.error = job.Error;
-            e.resultStats = MeshStats.From(e.result);
-            if (e.result != null)
-                e.result.hideFlags = HideFlags.DontSave;
+            var stats = MeshStats.From(result);
+            if (result != null)
+            {
+                result.hideFlags = HideFlags.DontSave;
+                CacheResult(e, e.jobSettings, result, stats);
+            }
+            e.result = result;
+            e.resultStats = stats;
         }
 
         void GenerateAll()

@@ -59,17 +59,11 @@ State that matters to the whole project lives in `ProjectSettings/MeshOptimizer.
 Per-user preferences (folders, pane sizes, column widths, queue position) live in `EditorPrefs`.
 
 
-
 ## TODO
 
 - Child mesh deletion (like deleting sub parts of a whole car mesh if not needed)
-
 - prefab right click: open with mesh optimizer
-
-
 - add revert button on mesh if opt added, with working ctrl z
-- does it needs mesh readable false for performance? 
+- does it needs mesh readable false for performance?
 
 
-I remember wrote a feature and you implemented but not working: when program generate a mesh with some settings, it should store that data at ram so if I try to get that mesh again, does not regenerate: just gives the data at the ram.
-Reason I want this: I open a mesh with very much vertex (so it takes much time) I open "preserve border edges", not sure about view, turn of, then not sure, turn on again etc. I want to see the mesh with that option open/close and combinations with other settings. currently every change taking time. so: store the generated until I switch to new mesh

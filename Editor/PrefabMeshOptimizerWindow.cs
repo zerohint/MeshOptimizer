@@ -190,12 +190,25 @@ namespace MeshOptimizer
             public string error;
             public bool needsRebuild = true;
             public MeshOptimizeCore.SimplifyJob job;
+            public OptimizeSettings jobSettings;  // settings the in-flight/just-finished job was started with
             public MeshOptimizerDatabase.MeshRecord cacheEntry;
             public bool reuseCache;
+
+            // In-RAM results keyed by the exact settings combo that produced them, so flipping a
+            // toggle back and forth (e.g. Preserve Border Edges) re-simplifies at most once per
+            // combo instead of every time. Cleared when the entry itself goes away (new selection).
+            public readonly List<ResultCacheItem> resultCache = new List<ResultCacheItem>();
 
             public bool IsGenerating => job != null;
             public bool Reoptimizing => !string.IsNullOrEmpty(overwritePath);
             public bool AlreadyOptimized => Reoptimizing || cacheEntry != null;
+        }
+
+        class ResultCacheItem
+        {
+            public OptimizeSettings settings;
+            public Mesh result;
+            public MeshStats stats;
         }
 
         class LodInfo
@@ -237,6 +250,7 @@ namespace MeshOptimizer
         double dirtyStamp = -1;
         const double RebuildDelay = 0.25;
         const int AutoRebuildTriangleLimit = 250000;
+        const int MaxResultCachePerEntry = 16; // bounds RAM if quality is dragged through many distinct values
 
         // layout
         const float BottomBarHeight = 34f;
@@ -293,12 +307,16 @@ namespace MeshOptimizer
                 var job = e.job;
                 e.job = null;
 
-                DestroyIfTemporary(e.result);
-                e.result = job.Complete();
+                var result = job.Complete();
                 e.error = job.Error;
-                e.resultStats = MeshStats.From(e.result);
-                if (e.result != null)
-                    e.result.hideFlags = HideFlags.DontSave;
+                var stats = MeshStats.From(result);
+                if (result != null)
+                {
+                    result.hideFlags = HideFlags.DontSave;
+                    CacheResult(e, e.jobSettings, result, stats);
+                }
+                e.result = result;
+                e.resultStats = stats;
 
                 Repaint();
             }

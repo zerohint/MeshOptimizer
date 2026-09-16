@@ -64,3 +64,18 @@ Per-user preferences (folders, pane sizes, column widths, queue position) live i
 
 - Code seperation, scripts so long.
 - Child mesh deletion (like deleting sub parts of a whole car mesh if not needed)
+- Remove sidebyside button and add stacked option to side by side dropdown. And make sidebyside default
+- Rotate button switches between 3 state: no rotate, rotate on one axis (which is current), rotate randomly (so user see every axis)
+- save model with settings not work. Regenerating rn.
+- sm_innermodule450x402, sm_MetalTarget4show no mesh but next goes there?
+- move lodview button to meshes list. I generally work with low groups closed
+- skip meshes default value 30
+- add smart and back
+- At 3d view panel top bar right aligned: write how much percentage tris dropped
+- sometimes right and left view desyncing rotation
+- and of the queue, but button: start from beginning
+- add revert button on mesh if opt added, with working ctrl z
+- prefab right click: open with mesh optimizer
+- already optimized: shows on hover but need new col for current optimized version tri
+- wireframe view: like unity: material, wire, unlit
+- needs is readable false for performance? If so,

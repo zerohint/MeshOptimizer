@@ -249,20 +249,8 @@ namespace MeshOptimizer
 
                     for (int i = 0; i < lod.heights.Length; i++)
                     {
-                        using (new EditorGUILayout.HorizontalScope())
-                        {
-                            var label = $"LOD{i}  ({lod.rendererCounts[i]} rend, {lod.triangleCounts[i]:N0} tris)";
-                            lod.heights[i] = EditorGUILayout.Slider(label, lod.heights[i], 0f, 1f);
-
-                            var pct = lod.heights[i] * 100f;
-                            if (GUILayout.Button(new GUIContent("LOD View",
-                                    $"Frame the preview at {pct:0.##}% screen height - the size at which LOD{i} hands over."),
-                                EditorStyles.miniButton, GUILayout.Width(70f)))
-                            {
-                                lodViewFraction = Mathf.Max(0.0005f, lod.heights[i]);
-                                lodViewLabel = $"LOD{i} switch ({pct:0.##}% screen height)";
-                            }
-                        }
+                        var label = $"LOD{i}  ({lod.rendererCounts[i]} rend, {lod.triangleCounts[i]:N0} tris)";
+                        lod.heights[i] = EditorGUILayout.Slider(label, lod.heights[i], 0f, 1f);
                     }
 
                     EditorGUILayout.LabelField("Culled below", $"{lod.heights[lod.heights.Length - 1] * 100f:0.##}% screen height", EditorStyles.miniLabel);

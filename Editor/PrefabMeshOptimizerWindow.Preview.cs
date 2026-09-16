@@ -12,16 +12,11 @@ namespace MeshOptimizer
             {
                 state.previewMode = (int)(PreviewMode)EditorGUILayout.EnumPopup((PreviewMode)state.previewMode, EditorStyles.toolbarPopup, GUILayout.Width(90f));
 
-                using (new EditorGUI.DisabledScope((PreviewMode)state.previewMode != PreviewMode.SideBySide))
-                {
-                    var split = state.compareVertical ? "Stacked" : "Side by side";
-                    if (GUILayout.Button(new GUIContent(split, "Switch between stacking the two views and placing them next to each other."),
-                            EditorStyles.toolbarButton, GUILayout.Width(85f)))
-                        state.compareVertical = !state.compareVertical;
-                }
-
                 state.wireframe = GUILayout.Toggle(state.wireframe, new GUIContent("Wire", "Draw both meshes as wireframe to compare topology."), EditorStyles.toolbarButton, GUILayout.Width(45f));
-                state.autoRotate = GUILayout.Toggle(state.autoRotate, new GUIContent("Rotate", "Spin both previews so you can judge the silhouette from every angle."), EditorStyles.toolbarButton, GUILayout.Width(55f));
+
+                if (GUILayout.Button(RotateButtonContent((RotateMode)state.rotateMode), EditorStyles.toolbarButton, GUILayout.Width(90f)))
+                    state.rotateMode = (state.rotateMode + 1) % 3;
+
                 state.showStatsOverlay = GUILayout.Toggle(state.showStatsOverlay, new GUIContent("Stats", "Overlay triangle/vertex counts on the previews."), EditorStyles.toolbarButton, GUILayout.Width(45f));
 
                 if (GUILayout.Button(new GUIContent("Reset", "Back to the default framing."), EditorStyles.toolbarButton, GUILayout.Width(50f)))
@@ -38,6 +33,10 @@ namespace MeshOptimizer
                     if (GUILayout.Button("exit", EditorStyles.toolbarButton, GUILayout.Width(35f)))
                         lodViewFraction = 0f;
                 }
+
+                var dropped = TrisDroppedLabel(e);
+                if (dropped != null)
+                    GUILayout.Label(dropped, EditorStyles.miniBoldLabel);
             }
 
             var rect = GUILayoutUtility.GetRect(10f, 40f, GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
@@ -53,8 +52,9 @@ namespace MeshOptimizer
             switch ((PreviewMode)state.previewMode)
             {
                 case PreviewMode.SideBySide:
+                case PreviewMode.Stacked:
                     Rect first, second;
-                    if (state.compareVertical)
+                    if ((PreviewMode)state.previewMode == PreviewMode.Stacked)
                     {
                         var h = rect.height * 0.5f - 2f;
                         first = new Rect(rect.x, rect.y, rect.width, h);
@@ -79,6 +79,33 @@ namespace MeshOptimizer
                     RenderMesh(rect, ResolveResultMesh(e), e.materials, e.source, "OPTIMIZED", OptimizedStats(e));
                     break;
             }
+        }
+
+        static GUIContent RotateButtonContent(RotateMode mode)
+        {
+            switch (mode)
+            {
+                case RotateMode.Spin:
+                    return new GUIContent("Rotate: Spin", "Spins around the vertical axis. Click to orbit every axis instead.");
+                case RotateMode.Orbit:
+                    return new GUIContent("Rotate: Orbit", "Continuously orbits so every side passes through view. Click to turn rotation off.");
+                default:
+                    return new GUIContent("Rotate: Off", "Click to spin the preview around the vertical axis.");
+            }
+        }
+
+        /// <summary>Percentage of triangles removed by the current result, or null if there is nothing to show yet.</summary>
+        string TrisDroppedLabel(MeshEntry e)
+        {
+            if (e == null || e.sourceStats.triangles <= 0)
+                return null;
+
+            var after = OptimizedStats(e);
+            if (after.triangles <= 0)
+                return null;
+
+            var pct = 100f * (1f - (float)after.triangles / e.sourceStats.triangles);
+            return $"{pct:0.#}% tris dropped";
         }
 
         Mesh ResolveResultMesh(MeshEntry e)

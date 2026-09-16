@@ -32,27 +32,6 @@ namespace MeshOptimizer
             return mf != null ? mf.sharedMesh : null;
         }
 
-        static Dictionary<Renderer, int> BuildLodLevelMap(GameObject root)
-        {
-            var map = new Dictionary<Renderer, int>();
-            foreach (var group in root.GetComponentsInChildren<LODGroup>(true))
-            {
-                var levels = group.GetLODs();
-                for (int i = 0; i < levels.Length; i++)
-                {
-                    if (levels[i].renderers == null)
-                        continue;
-
-                    foreach (var r in levels[i].renderers)
-                    {
-                        if (r != null && !map.ContainsKey(r))
-                            map.Add(r, i);
-                    }
-                }
-            }
-            return map;
-        }
-
         static string TransformPath(Transform t, Transform root)
         {
             if (t == root)

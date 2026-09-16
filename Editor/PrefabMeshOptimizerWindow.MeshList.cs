@@ -9,8 +9,8 @@ namespace MeshOptimizer
     // The mesh table: resizable columns, per-row status/include toggle, provenance icons.
     public partial class PrefabMeshOptimizerWindow
     {
-        static readonly string[] ColumnTitles = { "mesh", "lod", "used", "tris", "verts", "sub", "optimized" };
-        static readonly float[] DefaultColumnWidths = { 220f, 42f, 40f, 70f, 70f, 34f, 160f };
+        static readonly string[] ColumnTitles = { "mesh", "lod", "used", "tris", "verts", "sub", "cur tris", "optimized" };
+        static readonly float[] DefaultColumnWidths = { 220f, 42f, 40f, 70f, 70f, 34f, 70f, 160f };
         const float IconColumnWidth = 20f;
 
         List<float> ColumnWidths
@@ -138,7 +138,8 @@ namespace MeshOptimizer
                 widths[3] = Mathf.Max(widths[3], Measure(e.sourceStats.triangles.ToString("N0")));
                 widths[4] = Mathf.Max(widths[4], Measure(e.sourceStats.vertices.ToString("N0")));
                 widths[5] = Mathf.Max(widths[5], Measure(e.sourceStats.subMeshes.ToString()));
-                widths[6] = Mathf.Max(widths[6], Measure(StatusText(e)));
+                widths[6] = Mathf.Max(widths[6], Measure(CurrentTrisText(e)));
+                widths[7] = Mathf.Max(widths[7], Measure(StatusText(e)));
             }
 
             for (int i = 0; i < widths.Count; i++)
@@ -150,7 +151,7 @@ namespace MeshOptimizer
 
         struct RowColumns
         {
-            public Rect icon, name, lod, used, tris, verts, sub, status;
+            public Rect icon, name, lod, used, tris, verts, sub, currentTris, status;
         }
 
         RowColumns Columns(Rect row)
@@ -175,7 +176,8 @@ namespace MeshOptimizer
             c.tris = cells[3];
             c.verts = cells[4];
             c.sub = cells[5];
-            c.status = cells[6];
+            c.currentTris = cells[6];
+            c.status = cells[7];
             return c;
         }
 
@@ -186,6 +188,7 @@ namespace MeshOptimizer
             var ev = Event.current;
             var rowHover = row.Contains(ev.mousePosition);
             var statusHover = c.status.Contains(ev.mousePosition);
+            var lodHover = e.lod != null && c.lod.Contains(ev.mousePosition);
 
             if (ev.type == EventType.Repaint)
             {
@@ -205,7 +208,27 @@ namespace MeshOptimizer
                 GUI.color = new Color(1f, 1f, 1f, 0.5f);
 
             GUI.Label(c.name, new GUIContent(e.source != null ? e.source.name : "<missing>", e.label));
-            GUI.Label(c.lod, e.lodLabel ?? "");
+
+            // The lod cell doubles as a shortcut to frame the preview at this LOD's switch height,
+            // so it works with the LOD Groups foldout collapsed.
+            if (lodHover)
+            {
+                GUI.Label(c.lod, e.lodLabel ?? "", LinkStyle);
+                if (ev.type == EventType.MouseDown && ev.button == 0)
+                {
+                    var height = e.lod.heights[e.lodLevel];
+                    var pct = height * 100f;
+                    lodViewFraction = Mathf.Max(0.0005f, height);
+                    lodViewLabel = $"{e.lodLabel} switch ({pct:0.##}% screen height)";
+                    ev.Use();
+                    Repaint();
+                }
+            }
+            else
+            {
+                GUI.Label(c.lod, e.lodLabel ?? "");
+            }
+
             GUI.Label(c.used, new GUIContent(e.useCount + (e.colliderUseCount > 0 ? "*" : ""),
                 e.colliderUseCount > 0
                     ? $"{e.useCount} renderer(s) and {e.colliderUseCount} MeshCollider(s) in this prefab share this mesh"
@@ -213,6 +236,7 @@ namespace MeshOptimizer
             GUI.Label(c.tris, e.sourceStats.triangles.ToString("N0"));
             GUI.Label(c.verts, e.sourceStats.vertices.ToString("N0"));
             GUI.Label(c.sub, e.sourceStats.subMeshes.ToString());
+            GUI.Label(c.currentTris, CurrentTrisText(e));
 
             GUI.color = prevColor;
 
@@ -232,13 +256,36 @@ namespace MeshOptimizer
                 GUI.Label(c.status, StatusText(e), EditorStyles.miniLabel);
             }
 
-            if (ev.type == EventType.MouseDown && ev.button == 0 && rowHover && !statusHover)
+            if (ev.type == EventType.MouseDown && ev.button == 0 && rowHover && !statusHover && !lodHover)
             {
                 Select(i);
                 ev.Use();
                 Repaint();
             }
         }
+
+        /// <summary>
+        /// What is currently applied for an already-optimized mesh: its asset path and stats.
+        /// Returns false (and leaves the outputs default) when there is nothing applied yet.
+        /// </summary>
+        static bool TryGetAppliedInfo(MeshEntry e, out string assetPath, out MeshStats applied, out string assetName)
+        {
+            assetPath = null;
+            applied = default;
+            assetName = null;
+
+            if (e.isOrphanOutput || !e.AlreadyOptimized)
+                return false;
+
+            assetPath = e.Reoptimizing ? e.overwritePath : e.cacheEntry.outputPath;
+            applied = e.Reoptimizing ? e.referencedStats : MeshStats.From(AssetDatabase.LoadAssetAtPath<Mesh>(assetPath));
+            assetName = Path.GetFileNameWithoutExtension(assetPath);
+            return true;
+        }
+
+        /// <summary>Triangle count of the mesh currently applied to the prefab, or "" when none.</summary>
+        static string CurrentTrisText(MeshEntry e) =>
+            TryGetAppliedInfo(e, out _, out var applied, out _) ? applied.triangles.ToString("N0") : "";
 
         GUIContent StatusIcon(MeshEntry e)
         {
@@ -247,12 +294,8 @@ namespace MeshOptimizer
                     "Already an optimized asset, but its original is unknown (no database record). " +
                     "Optimizing it again would compound the error.");
 
-            if (!e.AlreadyOptimized)
+            if (!TryGetAppliedInfo(e, out _, out var applied, out var assetName))
                 return null;
-
-            var assetPath = e.Reoptimizing ? e.overwritePath : e.cacheEntry.outputPath;
-            var applied = e.Reoptimizing ? e.referencedStats : MeshStats.From(AssetDatabase.LoadAssetAtPath<Mesh>(assetPath));
-            var assetName = Path.GetFileNameWithoutExtension(assetPath);
 
             var tip = e.Reoptimizing
                 ? $"Already optimized - this prefab uses {assetName}\n" +

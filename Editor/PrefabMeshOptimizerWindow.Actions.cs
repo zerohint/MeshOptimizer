@@ -89,10 +89,14 @@ namespace MeshOptimizer
 
             db = db ?? MeshOptimizerDatabase.Instance;
 
+            // Built alongside the renderer -> LOD level map below so each mesh entry can jump
+            // straight to its LOD's switch height without needing the LOD Groups foldout open.
+            var lodLevelOf = new Dictionary<Renderer, (int level, LodInfo lod)>();
+
             foreach (var group in currentPrefab.GetComponentsInChildren<LODGroup>(true))
             {
                 var levels = group.GetLODs();
-                lods.Add(new LodInfo
+                var info = new LodInfo
                 {
                     path = TransformPath(group.transform, currentPrefab.transform),
                     name = group.gameObject.name + $" (LODGroup, {levels.Length} levels)",
@@ -103,7 +107,20 @@ namespace MeshOptimizer
                     triangleCounts = levels.Select(l => l.renderers == null
                         ? 0
                         : l.renderers.Where(r => r != null).Sum(r => MeshStats.From(MeshOf(r)).triangles)).ToArray()
-                });
+                };
+                lods.Add(info);
+
+                for (int i = 0; i < levels.Length; i++)
+                {
+                    if (levels[i].renderers == null)
+                        continue;
+
+                    foreach (var r in levels[i].renderers)
+                    {
+                        if (r != null && !lodLevelOf.ContainsKey(r))
+                            lodLevelOf.Add(r, (i, info));
+                    }
+                }
             }
 
             var colliderUse = new Dictionary<Mesh, int>();
@@ -117,7 +134,6 @@ namespace MeshOptimizer
             }
 
             var byMesh = new Dictionary<Mesh, MeshEntry>();
-            var lodLevelOf = BuildLodLevelMap(currentPrefab);
 
             foreach (var r in CollectMeshRenderers(currentPrefab))
             {
@@ -146,8 +162,9 @@ namespace MeshOptimizer
                 entry.useCount++;
                 if (lodLevelOf.TryGetValue(r, out var lvl) && entry.lodLevel < 0)
                 {
-                    entry.lodLevel = lvl;
-                    entry.lodLabel = "LOD" + lvl;
+                    entry.lodLevel = lvl.level;
+                    entry.lodLabel = "LOD" + lvl.level;
+                    entry.lod = lvl.lod;
                 }
             }
 

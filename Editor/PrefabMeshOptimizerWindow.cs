@@ -80,13 +80,13 @@ namespace MeshOptimizer
             public string outputFolder = "";
             public bool includeSubfolders = true;
             public bool skipPrefabsWithoutMeshes = true;
-            public int minTriangles;
+            public int minTriangles = 40;
             public bool alsoReplaceColliderMeshes;
             public bool updateSharedMeshInPlace = true;
 
             public bool autoRebuild = true;
             public bool wireframe;
-            public bool autoRotate;
+            public int rotateMode;                  // RotateMode: Off, Spin, Orbit
             public bool showStatsOverlay = true;
             public int previewMode;
             public bool showQueue;
@@ -95,7 +95,6 @@ namespace MeshOptimizer
             public float queueHeight = 120f;
             public float listHeight = 150f;
             public float previewWidth = 0.5f;       // fraction of the main area
-            public bool compareVertical = true;     // stack the two previews instead of side-by-side
             public List<float> columnWidths = new List<float>();
 
             public string stickySettings = "";
@@ -155,7 +154,8 @@ namespace MeshOptimizer
         // ---------------------------------------------------------------- runtime state
 
         enum PrefabStatus { Pending, Applied, Skipped, Failed }
-        enum PreviewMode { SideBySide, Original, Optimized }
+        enum PreviewMode { SideBySide, Stacked, Original, Optimized }
+        enum RotateMode { Off, Spin, Orbit }
 
         class MeshEntry
         {
@@ -167,6 +167,7 @@ namespace MeshOptimizer
             public string label;                  // renderer path
             public string lodLabel;
             public int lodLevel = -1;
+            public LodInfo lod;                   // LODGroup this mesh belongs to, if any
             public int useCount;
             public int colliderUseCount;          // MeshColliders in this prefab sharing this mesh
             public Material[] materials;
@@ -225,6 +226,7 @@ namespace MeshOptimizer
         string lodViewLabel;
         static Material fallbackMaterial;
         double lastFrameTime;
+        double rotatePhase;                       // Orbit mode: phase of the pitch oscillation
 
         // generation debounce
         double dirtyStamp = -1;
@@ -317,10 +319,24 @@ namespace MeshOptimizer
                 }
             }
 
-            if (state.autoRotate && currentPrefab != null)
+            if (currentPrefab != null)
             {
-                camAngles.y += dt * 35f;
-                Repaint();
+                switch ((RotateMode)state.rotateMode)
+                {
+                    case RotateMode.Spin:
+                        camAngles.y += dt * 35f;
+                        Repaint();
+                        break;
+
+                    case RotateMode.Orbit:
+                        // Yaw keeps spinning while pitch oscillates, so every side of the mesh
+                        // eventually passes through view instead of just circling the equator.
+                        rotatePhase += dt;
+                        camAngles.y += dt * 28f;
+                        camAngles.x = Mathf.Sin((float)rotatePhase * 0.6f) * 55f;
+                        Repaint();
+                        break;
+                }
             }
 
             if (busy)

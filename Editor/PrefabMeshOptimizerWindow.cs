@@ -85,7 +85,7 @@ namespace MeshOptimizer
             public bool updateSharedMeshInPlace = true;
 
             public bool autoRebuild = true;
-            public bool wireframe;
+            public int shadingMode;                  // ShadingMode: Shaded, Wireframe, ShadedWireframe, Unlit
             public int rotateMode;                  // RotateMode: Off, Spin, Orbit
             public bool showStatsOverlay = true;
             public int previewMode;
@@ -156,6 +156,7 @@ namespace MeshOptimizer
         enum PrefabStatus { Pending, Applied, Skipped, Failed }
         enum PreviewMode { SideBySide, Stacked, Original, Optimized }
         enum RotateMode { Off, Spin, Orbit }
+        enum ShadingMode { Shaded, Wireframe, ShadedWireframe, Unlit }
 
         class MeshEntry
         {
@@ -181,6 +182,8 @@ namespace MeshOptimizer
             public bool include = true;
             public bool touched;                  // has settings of its own (user-edited or recorded)
             public OptimizeSettings settings;
+            public bool smart;                    // Smart mode picked the current quality
+            public OptimizeSettings preSmartSettings; // snapshot to restore if Smart is toggled off
 
             public Mesh result;
             public MeshStats resultStats;
@@ -225,6 +228,8 @@ namespace MeshOptimizer
         float lodViewFraction;                    // >0: frame the mesh at this screen height
         string lodViewLabel;
         static Material fallbackMaterial;
+        static Material unlitMaterial;
+        static Material wireOverlayMaterial;
         double lastFrameTime;
         double rotatePhase;                       // Orbit mode: phase of the pitch oscillation
 

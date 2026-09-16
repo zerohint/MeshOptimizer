@@ -12,7 +12,7 @@ namespace MeshOptimizer
             {
                 state.previewMode = (int)(PreviewMode)EditorGUILayout.EnumPopup((PreviewMode)state.previewMode, EditorStyles.toolbarPopup, GUILayout.Width(90f));
 
-                state.wireframe = GUILayout.Toggle(state.wireframe, new GUIContent("Wire", "Draw both meshes as wireframe to compare topology."), EditorStyles.toolbarButton, GUILayout.Width(45f));
+                state.shadingMode = (int)(ShadingMode)EditorGUILayout.EnumPopup((ShadingMode)state.shadingMode, EditorStyles.toolbarPopup, GUILayout.Width(110f));
 
                 if (GUILayout.Button(RotateButtonContent((RotateMode)state.rotateMode), EditorStyles.toolbarButton, GUILayout.Width(90f)))
                     state.rotateMode = (state.rotateMode + 1) % 3;
@@ -187,13 +187,36 @@ namespace MeshOptimizer
                 preview.lights[1].transform.rotation = Quaternion.Euler(-25f, 200f, 0f);
                 preview.ambientColor = new Color(0.28f, 0.28f, 0.32f, 1f);
 
-                GL.wireframe = state.wireframe;
-                for (int s = 0; s < mesh.subMeshCount; s++)
+                var shading = (ShadingMode)state.shadingMode;
+                bool drawShaded = shading != ShadingMode.Wireframe;
+                bool drawWire = shading == ShadingMode.Wireframe || shading == ShadingMode.ShadedWireframe;
+
+                if (drawShaded)
                 {
-                    var mat = materials != null && materials.Length > 0
-                        ? materials[Mathf.Min(s, materials.Length - 1)]
-                        : null;
-                    preview.DrawMesh(mesh, Matrix4x4.identity, mat ?? FallbackMaterial, s);
+                    GL.wireframe = false;
+                    for (int s = 0; s < mesh.subMeshCount; s++)
+                    {
+                        Material mat;
+                        if (shading == ShadingMode.Unlit)
+                        {
+                            mat = UnlitMaterial;
+                        }
+                        else
+                        {
+                            mat = materials != null && materials.Length > 0
+                                ? materials[Mathf.Min(s, materials.Length - 1)]
+                                : null;
+                            mat = mat ?? FallbackMaterial;
+                        }
+                        preview.DrawMesh(mesh, Matrix4x4.identity, mat, s);
+                    }
+                }
+
+                if (drawWire)
+                {
+                    GL.wireframe = true;
+                    for (int s = 0; s < mesh.subMeshCount; s++)
+                        preview.DrawMesh(mesh, Matrix4x4.identity, WireOverlayMaterial, s);
                 }
 
                 cam.Render();
@@ -226,6 +249,40 @@ namespace MeshOptimizer
                     fallbackMaterial = new Material(shader) { hideFlags = HideFlags.HideAndDontSave };
                 }
                 return fallbackMaterial;
+            }
+        }
+
+        static Material UnlitMaterial
+        {
+            get
+            {
+                if (unlitMaterial == null)
+                {
+                    var shader = Shader.Find("Universal Render Pipeline/Unlit") ?? Shader.Find("Unlit/Color");
+                    unlitMaterial = new Material(shader) { hideFlags = HideFlags.HideAndDontSave };
+                    if (unlitMaterial.HasProperty("_BaseColor"))
+                        unlitMaterial.SetColor("_BaseColor", new Color(0.6f, 0.6f, 0.6f));
+                    else if (unlitMaterial.HasProperty("_Color"))
+                        unlitMaterial.SetColor("_Color", new Color(0.6f, 0.6f, 0.6f));
+                }
+                return unlitMaterial;
+            }
+        }
+
+        static Material WireOverlayMaterial
+        {
+            get
+            {
+                if (wireOverlayMaterial == null)
+                {
+                    var shader = Shader.Find("Universal Render Pipeline/Unlit") ?? Shader.Find("Unlit/Color");
+                    wireOverlayMaterial = new Material(shader) { hideFlags = HideFlags.HideAndDontSave };
+                    if (wireOverlayMaterial.HasProperty("_BaseColor"))
+                        wireOverlayMaterial.SetColor("_BaseColor", Color.black);
+                    else if (wireOverlayMaterial.HasProperty("_Color"))
+                        wireOverlayMaterial.SetColor("_Color", Color.black);
+                }
+                return wireOverlayMaterial;
             }
         }
     }

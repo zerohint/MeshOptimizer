@@ -13,6 +13,7 @@ namespace MeshOptimizer
             using (var sv = new EditorGUILayout.ScrollViewScope(scrollSettings, GUILayout.Height(columnHeight)))
             {
                 scrollSettings = sv.scrollPosition;
+                var locked = e.reuseCache || e.IsGenerating;
 
                 using (new EditorGUILayout.HorizontalScope())
                 {
@@ -38,6 +39,18 @@ namespace MeshOptimizer
                                                                            "and mark them for regeneration."),
                                 EditorStyles.miniButton, GUILayout.Width(80f)))
                             CopySettingsToAll(e);
+
+                        using (new EditorGUI.DisabledScope(locked))
+                        {
+                            EditorGUI.BeginChangeCheck();
+                            var smartOn = GUILayout.Toggle(e.smart,
+                                new GUIContent("Smart", "Searches for the quality level that compresses the most while keeping visual " +
+                                                         "distortion imperceptible. Press again to revert to what you had before. " +
+                                                         "Changing any setting turns it off."),
+                                EditorStyles.miniButton, GUILayout.Width(55f));
+                            if (EditorGUI.EndChangeCheck())
+                                ToggleSmart(e, smartOn);
+                        }
                     }
                 }
 
@@ -49,7 +62,6 @@ namespace MeshOptimizer
 
                 DrawReductionHint(e);
 
-                var locked = e.reuseCache || e.IsGenerating;
                 var body = EditorGUILayout.BeginVertical();
                 var prevLabelWidth = EditorGUIUtility.labelWidth;
                 EditorGUIUtility.labelWidth = 230f;
@@ -113,7 +125,49 @@ namespace MeshOptimizer
         void OnSettingsEdited(MeshEntry e)
         {
             e.touched = true;
+
+            // A manual edit invalidates whatever Smart picked - turn it off without reverting
+            // the value the user just typed.
+            e.smart = false;
+            e.preSmartSettings = null;
+
             sticky = e.settings.Clone();
+            RequestRebuild(e);
+        }
+
+        /// <summary>
+        /// Smart on: snapshots the current settings, then searches for the quality that gives the
+        /// most compression while keeping distortion imperceptible. Smart off: restores the snapshot.
+        /// </summary>
+        void ToggleSmart(MeshEntry e, bool on)
+        {
+            if (on)
+            {
+                e.preSmartSettings = e.settings.Clone();
+
+                EditorUtility.DisplayProgressBar("Mesh Optimizer", $"Finding the best quality for {e.source.name}", 0.5f);
+                try
+                {
+                    e.settings.quality = MeshQualityAdvisor.FindBestQuality(e.source, e.settings);
+                }
+                finally
+                {
+                    EditorUtility.ClearProgressBar();
+                }
+
+                e.smart = true;
+                e.touched = true;
+                sticky = e.settings.Clone();
+            }
+            else
+            {
+                if (e.preSmartSettings != null)
+                    e.settings = e.preSmartSettings.Clone();
+
+                e.smart = false;
+                e.preSmartSettings = null;
+            }
+
             RequestRebuild(e);
         }
 
@@ -182,14 +236,21 @@ namespace MeshOptimizer
                         ApplyCurrent(true);
                 }
 
-                if (GUILayout.Button(new GUIContent("Skip", "Leave this prefab untouched and move on. The skip is remembered in the project database."),
-                        GUILayout.Height(26f), GUILayout.Width(80f)))
+                var atEndOfQueue = state.index >= state.queue.Count - 1;
+                using (new EditorGUI.DisabledScope(atEndOfQueue))
                 {
-                    state.statuses[state.index] = (int)PrefabStatus.Skipped;
-                    db = db ?? MeshOptimizerDatabase.Instance;
-                    db.RecordPrefab(state.queue[state.index], "skipped", 0, 0, 0);
-                    db.Save();
-                    Goto(state.index + 1);
+                    var skipContent = atEndOfQueue
+                        ? new GUIContent("End of the queue", "This is the last prefab in the queue - there is nothing left to skip to.")
+                        : new GUIContent("Skip", "Leave this prefab untouched and move on. The skip is remembered in the project database.");
+
+                    if (GUILayout.Button(skipContent, GUILayout.Height(26f), GUILayout.MinWidth(80f)))
+                    {
+                        state.statuses[state.index] = (int)PrefabStatus.Skipped;
+                        db = db ?? MeshOptimizerDatabase.Instance;
+                        db.RecordPrefab(state.queue[state.index], "skipped", 0, 0, 0);
+                        db.Save();
+                        Goto(state.index + 1);
+                    }
                 }
             }
         }

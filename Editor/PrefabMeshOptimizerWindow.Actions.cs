@@ -308,6 +308,8 @@ namespace MeshOptimizer
 
                 e.settings = src.settings.Clone();
                 e.touched = true;
+                e.smart = false;
+                e.preSmartSettings = null;
                 e.needsRebuild = true;
             }
 

@@ -9,8 +9,19 @@ namespace MeshOptimizer
     // The mesh table: resizable columns, per-row status/include toggle, provenance icons.
     public partial class PrefabMeshOptimizerWindow
     {
-        static readonly string[] ColumnTitles = { "mesh", "lod", "used", "tris", "verts", "sub", "cur tris", "optimized" };
-        static readonly float[] DefaultColumnWidths = { 220f, 42f, 40f, 70f, 70f, 34f, 70f, 160f };
+        static readonly string[] ColumnTitles = { "Mesh", "Used", "Tris", "Verts", "Sub", "Cur tris", "Optimized", "LOD" };
+        static readonly string[] ColumnTooltips =
+        {
+            "The mesh this row is about.",
+            "How many renderers (and MeshColliders, marked with *) in this prefab use this mesh.",
+            "Triangle count of the original mesh.",
+            "Vertex count of the original mesh.",
+            "Number of sub-meshes (material slots).",
+            "Triangle count of the mesh currently applied to the prefab, if any.",
+            "Generation and apply status for this mesh.",
+            "The LOD level this mesh belongs to, if the prefab has a LODGroup. Click to frame the preview at that LOD's switch height."
+        };
+        static readonly float[] DefaultColumnWidths = { 220f, 40f, 70f, 70f, 34f, 70f, 160f, 90f };
         const float IconColumnWidth = 20f;
 
         List<float> ColumnWidths
@@ -71,6 +82,13 @@ namespace MeshOptimizer
         void DrawColumnHeader()
         {
             var headerRect = GUILayoutUtility.GetRect(0f, 18f, GUILayout.ExpandWidth(true));
+
+            if (Event.current.type == EventType.Repaint)
+            {
+                EditorGUI.DrawRect(headerRect, new Color(0f, 0f, 0f, 0.16f));
+                EditorGUI.DrawRect(new Rect(headerRect.x, headerRect.yMax - 1f, headerRect.width, 1f), new Color(1f, 1f, 1f, 0.15f));
+            }
+
             GUI.BeginGroup(headerRect);
 
             var widths = ColumnWidths;
@@ -79,7 +97,7 @@ namespace MeshOptimizer
             for (int i = 0; i < ColumnTitles.Length; i++)
             {
                 var cell = new Rect(x, 0f, widths[i], headerRect.height);
-                GUI.Label(cell, ColumnTitles[i], EditorStyles.miniBoldLabel);
+                GUI.Label(cell, new GUIContent(ColumnTitles[i], ColumnTooltips[i]), EditorStyles.miniBoldLabel);
                 x += widths[i];
 
                 // Drag handle on the column's right edge.
@@ -133,13 +151,13 @@ namespace MeshOptimizer
             foreach (var e in entries)
             {
                 widths[0] = Mathf.Max(widths[0], Measure(e.source != null ? e.source.name : "<missing>"));
-                widths[1] = Mathf.Max(widths[1], Measure(e.lodLabel));
-                widths[2] = Mathf.Max(widths[2], Measure(e.useCount + (e.colliderUseCount > 0 ? "*" : "")));
-                widths[3] = Mathf.Max(widths[3], Measure(e.sourceStats.triangles.ToString("N0")));
-                widths[4] = Mathf.Max(widths[4], Measure(e.sourceStats.vertices.ToString("N0")));
-                widths[5] = Mathf.Max(widths[5], Measure(e.sourceStats.subMeshes.ToString()));
-                widths[6] = Mathf.Max(widths[6], Measure(CurrentTrisText(e)));
-                widths[7] = Mathf.Max(widths[7], Measure(StatusText(e)));
+                widths[1] = Mathf.Max(widths[1], Measure(e.useCount + (e.colliderUseCount > 0 ? "*" : "")));
+                widths[2] = Mathf.Max(widths[2], Measure(e.sourceStats.triangles.ToString("N0")));
+                widths[3] = Mathf.Max(widths[3], Measure(e.sourceStats.vertices.ToString("N0")));
+                widths[4] = Mathf.Max(widths[4], Measure(e.sourceStats.subMeshes.ToString()));
+                widths[5] = Mathf.Max(widths[5], Measure(CurrentTrisText(e)));
+                widths[6] = Mathf.Max(widths[6], Measure(StatusText(e)));
+                widths[7] = Mathf.Max(widths[7], Measure(LodButtonText(e)));
             }
 
             for (int i = 0; i < widths.Count; i++)
@@ -151,7 +169,7 @@ namespace MeshOptimizer
 
         struct RowColumns
         {
-            public Rect icon, name, lod, used, tris, verts, sub, currentTris, status;
+            public Rect icon, name, used, tris, verts, sub, currentTris, status, lod;
         }
 
         RowColumns Columns(Rect row)
@@ -171,13 +189,13 @@ namespace MeshOptimizer
             }
 
             c.name = cells[0];
-            c.lod = cells[1];
-            c.used = cells[2];
-            c.tris = cells[3];
-            c.verts = cells[4];
-            c.sub = cells[5];
-            c.currentTris = cells[6];
-            c.status = cells[7];
+            c.used = cells[1];
+            c.tris = cells[2];
+            c.verts = cells[3];
+            c.sub = cells[4];
+            c.currentTris = cells[5];
+            c.status = cells[6];
+            c.lod = cells[7];
             return c;
         }
 
@@ -188,7 +206,6 @@ namespace MeshOptimizer
             var ev = Event.current;
             var rowHover = row.Contains(ev.mousePosition);
             var statusHover = c.status.Contains(ev.mousePosition);
-            var lodHover = e.lod != null && c.lod.Contains(ev.mousePosition);
 
             if (ev.type == EventType.Repaint)
             {
@@ -208,27 +225,6 @@ namespace MeshOptimizer
                 GUI.color = new Color(1f, 1f, 1f, 0.5f);
 
             GUI.Label(c.name, new GUIContent(e.source != null ? e.source.name : "<missing>", e.label));
-
-            // The lod cell doubles as a shortcut to frame the preview at this LOD's switch height,
-            // so it works with the LOD Groups foldout collapsed.
-            if (lodHover)
-            {
-                GUI.Label(c.lod, e.lodLabel ?? "", LinkStyle);
-                if (ev.type == EventType.MouseDown && ev.button == 0)
-                {
-                    var height = e.lod.heights[e.lodLevel];
-                    var pct = height * 100f;
-                    lodViewFraction = Mathf.Max(0.0005f, height);
-                    lodViewLabel = $"{e.lodLabel} switch ({pct:0.##}% screen height)";
-                    ev.Use();
-                    Repaint();
-                }
-            }
-            else
-            {
-                GUI.Label(c.lod, e.lodLabel ?? "");
-            }
-
             GUI.Label(c.used, new GUIContent(e.useCount + (e.colliderUseCount > 0 ? "*" : ""),
                 e.colliderUseCount > 0
                     ? $"{e.useCount} renderer(s) and {e.colliderUseCount} MeshCollider(s) in this prefab share this mesh"
@@ -256,13 +252,29 @@ namespace MeshOptimizer
                 GUI.Label(c.status, StatusText(e), EditorStyles.miniLabel);
             }
 
-            if (ev.type == EventType.MouseDown && ev.button == 0 && rowHover && !statusHover && !lodHover)
+            // Jumps the preview straight to this LOD's switch height, so it works with the LOD
+            // Groups foldout collapsed. Disabled when the prefab has no LODGroup for this mesh.
+            using (new EditorGUI.DisabledScope(e.lod == null))
+            {
+                if (GUI.Button(c.lod, LodButtonText(e), EditorStyles.miniButton))
+                {
+                    var height = e.lod.heights[e.lodLevel];
+                    var pct = height * 100f;
+                    lodViewFraction = Mathf.Max(0.0005f, height);
+                    lodViewLabel = $"{e.lodLabel} switch ({pct:0.##}% screen height)";
+                    Repaint();
+                }
+            }
+
+            if (ev.type == EventType.MouseDown && ev.button == 0 && rowHover && !statusHover)
             {
                 Select(i);
                 ev.Use();
                 Repaint();
             }
         }
+
+        static string LodButtonText(MeshEntry e) => e.lod != null ? $"LOD{e.lodLevel} View" : "LOD View";
 
         /// <summary>
         /// What is currently applied for an already-optimized mesh: its asset path and stats.

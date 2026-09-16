@@ -65,10 +65,11 @@ Per-user preferences (folders, pane sizes, column widths, queue position) live i
 - Child mesh deletion (like deleting sub parts of a whole car mesh if not needed)
 
 - prefab right click: open with mesh optimizer
-- add smart and back
-- add revert button on mesh if opt added, with working ctrl z
 
-- wireframe view: like unity: material, wire, unlit
-- needs is readable false for performance? If so,
-- save model with settings not work. Regenerating rn.
-- algorihtm for best opt
+
+- add revert button on mesh if opt added, with working ctrl z
+- does it needs mesh readable false for performance? 
+
+
+I remember wrote a feature and you implemented but not working: when program generate a mesh with some settings, it should store that data at ram so if I try to get that mesh again, does not regenerate: just gives the data at the ram.
+Reason I want this: I open a mesh with very much vertex (so it takes much time) I open "preserve border edges", not sure about view, turn of, then not sure, turn on again etc. I want to see the mesh with that option open/close and combinations with other settings. currently every change taking time. so: store the generated until I switch to new mesh

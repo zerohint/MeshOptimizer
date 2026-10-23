@@ -9,22 +9,18 @@ uses with its stats, a live original/optimized preview, the full simplifier opti
 prefab's LOD setup. When a result looks right, **Apply** writes the optimized meshes, re-points
 the prefab and moves to the next one.
 
+Full manual: [Docs/Documentation.md](Docs/Documentation.md)
+
 ## Requirements
 
-- Unity 6000.0 or newer.
-- [UnityMeshSimplifier](https://github.com/Whinarn/UnityMeshSimplifier) — the simplification
-  algorithm itself. Unity cannot express a git dependency in `package.json`, so add it to your
-  project's `Packages/manifest.json` yourself:
-
-  ```json
-  "com.whinarn.unitymeshsimplifier": "https://github.com/Whinarn/UnityMeshSimplifier.git#v3.1.0"
-  ```
-
-  Without it the package will not compile.
+- Unity 6000.0 or newer. No other packages: the simplification algorithm
+  ([UnityMeshSimplifier](https://github.com/Whinarn/UnityMeshSimplifier), MIT) is bundled under
+  `Editor/ThirdParty` in its own namespace, so it does not clash with a copy you already have.
 
 ## Installation
 
-Window ▸ Package Manager ▸ **+** ▸ *Install package from git URL…*
+Window ▸ Package Manager ▸ **+** ▸ *Install package from git URL…* ▸
+`https://github.com/zerohint/MeshOptimizer.git`
 
 ## Usage
 
@@ -57,6 +53,10 @@ State that matters to the whole project lives in `ProjectSettings/MeshOptimizer.
 - per-prefab progress (applied/skipped), keyed by GUID so it survives renames.
 
 Per-user preferences (folders, pane sizes, column widths, queue position) live in `EditorPrefs`.
+
+## License notices
+
+See [Third-Party Notices.txt](Third-Party%20Notices.txt).
 
 
 ## TODO

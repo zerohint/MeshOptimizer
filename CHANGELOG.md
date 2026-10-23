@@ -16,3 +16,6 @@ All notable changes to this package are documented here.
   (source -> optimized asset plus the settings used) and per-prefab progress.
 - Shared meshes are generated once and re-pointed; re-tuning overwrites the same asset
   instead of producing `_opt_opt` chains.
+- UnityMeshSimplifier 3.1.0 (MIT) is bundled under `Editor/ThirdParty` in the
+  `MeshOptimizer.Simplifier` namespace, so the package works right after import.
+- Offline manual in `Docs/Documentation.md`.

@@ -1,6 +1,6 @@
 using System;
 using UnityEngine;
-using UnityMeshSimplifier;
+using MeshOptimizer.Simplifier;
 
 namespace MeshOptimizer
 {

@@ -1,9 +1,7 @@
 {
     "name": "MeshOptimizer.Editor",
     "rootNamespace": "MeshOptimizer",
-    "references": [
-        "Whinarn.UnityMeshSimplifier.Runtime"
-    ],
+    "references": [],
     "includePlatforms": [
         "Editor"
     ],

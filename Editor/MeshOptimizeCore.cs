@@ -5,7 +5,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityMeshSimplifier;
+using MeshOptimizer.Simplifier;
 
 namespace MeshOptimizer
 {

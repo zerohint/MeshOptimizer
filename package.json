@@ -1,6 +1,6 @@
 {
   "name": "com.zerohint.mesh-optimizer",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "displayName": "Mesh Optimizer",
   "description": "Interactive, prefab-by-prefab mesh optimizer. Walk a folder of prefabs, tune every mesh against a live original/optimized preview, edit LOD transitions, then apply: optimized meshes are written once, shared meshes are reused, and prefabs are re-pointed automatically.\n\nIncludes UnityMeshSimplifier (MIT) - no extra install needed.",
   "unity": "6000.0",

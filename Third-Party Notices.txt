@@ -1,14 +1,14 @@
 This package contains third-party software components governed by the license(s) indicated below:
 ---------
 
-Component Name: UnityMeshSimplifier
+Component Name: Mesh Simplifier by Mattias Edlund (Whinarn)
 Version: 3.1.0
 License Type: MIT
 Source: https://github.com/Whinarn/UnityMeshSimplifier
 Location in this package: Editor/ThirdParty/UnityMeshSimplifier
 Modifications: only the files needed for mesh simplification are included (LOD generator,
 mesh combiner and their components are omitted), and the namespace was changed from
-"UnityMeshSimplifier" to "MeshOptimizer.Simplifier". The algorithm is unchanged.
+the original one to "MeshOptimizer.Simplifier". The algorithm is unchanged.
 
 MIT License
 
@@ -34,7 +34,7 @@ SOFTWARE.
 
 ---------
 
-Component Name: Fast-Quadric-Mesh-Simplification (algorithm UnityMeshSimplifier is based on)
+Component Name: Fast-Quadric-Mesh-Simplification (algorithm the Mesh Simplifier is based on)
 License Type: MIT
 Copyright (c) 2014 Sven Forstmann
 Source: https://github.com/sp4cerat/Fast-Quadric-Mesh-Simplification

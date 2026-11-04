@@ -1,8 +1,8 @@
-# Unity Mesh Optimizer
+# Mesh Optimizer: Batch Prefab LOD & Simplify
 
-Interactive, prefab-by-prefab mesh optimizer for the Unity Editor.
+Interactive, prefab-by-prefab mesh optimizer that runs inside the Editor.
 
-![Unity Mesh Optimizer](Docs/screenshoot.jpg)
+![Mesh Optimizer](Docs/screenshoot.jpg)
 
 Point it at a folder of prefabs and step through them: for each prefab you get every mesh it
 uses with its stats, a live original/optimized preview, the full simplifier option set, and the
@@ -14,7 +14,7 @@ Full manual: [Docs/Documentation.md](Docs/Documentation.md)
 ## Requirements
 
 - Unity 6000.0 or newer. No other packages: the simplification algorithm
-  ([UnityMeshSimplifier](https://github.com/Whinarn/UnityMeshSimplifier), MIT) is bundled under
+  ([Mesh Simplifier](https://github.com/Whinarn/UnityMeshSimplifier) by Mattias Edlund, MIT) is bundled under
   `Editor/ThirdParty` in its own namespace, so it does not clash with a copy you already have.
 
 ## Installation

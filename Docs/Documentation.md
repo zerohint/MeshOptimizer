@@ -31,7 +31,7 @@ and re-points the prefabs at them. Your original meshes are never modified.
 
 ## Installation
 
-**From the Asset Store:** open **Window ▸ Package Manager ▸ My Assets**, find
+**From Package Manager (My Assets):** open **Window ▸ Package Manager ▸ My Assets**, find
 *Mesh Optimizer: Batch Prefab LOD & Simplify* and click **Import**. Everything goes under
 `Assets/MeshOptimizer`.
 
@@ -172,7 +172,7 @@ original from its saved record. It simplifies the original again and overwrites 
 asset. It doesn't stack a second reduction on top of the first.
 
 **Undoing:** point the renderer back at the original mesh, or revert the prefab with version
-control. Prefab saves made by Apply are not recorded in Unity's Undo history.
+control. Prefab saves made by Apply are not recorded in the Editor's Undo history.
 
 ## Saved data
 
@@ -210,7 +210,7 @@ scripts. See `MeshOptimizer.MeshOptimizeCore` and `MeshOptimizer.OptimizeSetting
 ## Third-party software
 
 The simplification algorithm is
-[UnityMeshSimplifier](https://github.com/Whinarn/UnityMeshSimplifier) 3.1.0 by Mattias Edlund
+[Mesh Simplifier](https://github.com/Whinarn/UnityMeshSimplifier) 3.1.0 by Mattias Edlund
 (MIT License). It is based on
 [Fast-Quadric-Mesh-Simplification](https://github.com/sp4cerat/Fast-Quadric-Mesh-Simplification)
 by Sven Forstmann (MIT License). The code is included in `Editor/ThirdParty/UnityMeshSimplifier`

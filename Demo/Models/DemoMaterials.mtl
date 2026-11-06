@@ -1,0 +1,12 @@
+newmtl Sphere
+Kd 0.8 0.8 0.8
+newmtl Knot
+Kd 0.8 0.8 0.8
+newmtl Rock
+Kd 0.8 0.8 0.8
+newmtl Wood
+Kd 0.6 0.4 0.2
+newmtl Metal
+Kd 0.5 0.5 0.55
+newmtl Lid
+Kd 0.5 0.35 0.2

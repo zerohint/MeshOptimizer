@@ -12,15 +12,16 @@ and re-points the prefabs at them. Your original meshes are never modified.
 1. [Requirements](#requirements)
 2. [Installation](#installation)
 3. [Quick start](#quick-start)
-4. [The window](#the-window)
-5. [Simplification settings](#simplification-settings)
-6. [LOD groups](#lod-groups)
-7. [What Apply changes](#what-apply-changes)
-8. [Saved data](#saved-data)
-9. [Troubleshooting](#troubleshooting)
-10. [Scripting](#scripting)
-11. [Support](#support)
-12. [Third-party software](#third-party-software)
+4. [Demo scene](#demo-scene)
+5. [The window](#the-window)
+6. [Simplification settings](#simplification-settings)
+7. [LOD groups](#lod-groups)
+8. [What Apply changes](#what-apply-changes)
+9. [Saved data](#saved-data)
+10. [Troubleshooting](#troubleshooting)
+11. [Scripting](#scripting)
+12. [Support](#support)
+13. [Third-party software](#third-party-software)
 
 ## Requirements
 
@@ -55,6 +56,31 @@ You don't need to install anything else. The simplification algorithm is include
 
 You can close the window at any time. Your progress is saved and **Resume** takes you back to
 the first prefab that is still pending.
+
+## Demo scene
+
+`Assets/MeshOptimizer/Demo` contains dense sample models and prefabs to try the tool on. All of
+them are generated procedurally and free to use.
+
+1. Open `Demo/MeshOptimizerDemo.unity` to see the prefabs side by side.
+2. Open **Window ▸ Asset Management ▸ Mesh Optimizer**.
+3. Set **Prefab Folder** to `Assets/MeshOptimizer/Demo/Prefabs` (or right-click that folder and
+   choose **Optimize Prefab Meshes…**), then click **Start Optimizing**.
+4. Step through the prefabs and apply. The scene updates as each prefab is re-pointed.
+
+| Prefab | Shows |
+| --- | --- |
+| `Sphere` | A smooth 18k-triangle mesh. Easy to see where it starts to look faceted. |
+| `Rock_A`, `Rock_B` | Two prefabs sharing one mesh (`Rock_B` also uses it as a `MeshCollider`). The mesh is optimized once and both prefabs are re-pointed. |
+| `TorusKnot_LOD` | An `LODGroup` with three levels. LOD1 and LOD2 are deliberately too dense; use the LOD panel and LOD View. |
+| `Barrel` | One mesh with three sub-meshes and materials. |
+
+The optimized meshes go to `Demo/Prefabs/OptimizedMeshes`. The demo uses its own small shader,
+`Mesh Optimizer/Demo Lit`, so it looks the same in the Built-in Render Pipeline and URP. To reset
+the demo, delete `Demo/Prefabs/OptimizedMeshes` and re-import the package.
+
+If you installed from git, the package folder is read-only. Copy the `Demo` folder into `Assets`
+first and point the tool at the copy.
 
 ## The window
 

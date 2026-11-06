@@ -19,8 +19,17 @@ Full manual: [Docs/Documentation.md](Docs/Documentation.md)
 
 ## Installation
 
-Window ▸ Package Manager ▸ **+** ▸ *Install package from git URL…* ▸
-`https://github.com/zerohint/MeshOptimizer.git`
+- **Asset Store:** Window ▸ Package Manager ▸ **My Assets** ▸ *Mesh Optimizer* ▸ **Import**.
+  Everything goes under `Assets/MeshOptimizer`.
+- **Git:** Window ▸ Package Manager ▸ **+** ▸ *Install package from git URL…* ▸
+  `https://github.com/zerohint/MeshOptimizer.git`
+
+## Demo
+
+Open `Demo/MeshOptimizerDemo.unity`, then point the window at `Assets/MeshOptimizer/Demo/Prefabs`
+and press **Start Optimizing**. The prefabs show a dense smooth mesh, a mesh shared by two prefabs,
+an LOD group and a multi-material mesh. See [Docs/Documentation.md](Docs/Documentation.md#demo-scene).
+(With a git install the package is read-only: copy `Demo` into `Assets` first.)
 
 ## Usage
 

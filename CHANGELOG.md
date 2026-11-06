@@ -2,6 +2,13 @@
 
 All notable changes to this package are documented here.
 
+## [1.2.0]
+
+### Added
+- Demo scene and sample assets in `Demo/`: dense procedurally generated models, prefabs that
+  show shared meshes, an LOD group and multi-material meshes, and `MeshOptimizerDemo.unity`.
+  The demo renders the same in the Built-in Render Pipeline and URP.
+
 ## [1.1.0]
 
 ### Added
